@@ -49,7 +49,7 @@ class CreateTodoItem extends Component {
         const { value } = this.state;
         return (
             <div className={classes.root}>
-                {hasTodo && <div>Some Button to style</div>}
+                {hasTodo && <button> arrow down</button>}
                 <input
                     className={classes.input}
                     placeholder="What needs to be done?"

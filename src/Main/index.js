@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import injectSheet from "react-jss";
+import memoize from "memoize-one";
 
 import CreateTodoItem from "../CreateTodoItem";
 import TodoList from "../TodoList";
@@ -19,22 +20,18 @@ class Main extends Component {
         super(props);
         this.state = {
             selectedFilter: "all",
-            todos: [],
-            visibleTodos: [],
-            completedTodos: []
+            todos: []
         };
     }
 
     onTodoItemCreate = value => {
         const { todos } = this.state;
-        const newTodos = [{ value, isComplete: false }, ...todos];
         this.setState({
-            todos: newTodos,
-            visibleTodos: this.getVisibleTodos(newTodos)
+            todos: [{ value, isComplete: false }, ...todos]
         });
     };
 
-    onTodoCompleteChange = (isComplete, todo) => {
+    onTodoItemCompleteChange = (isComplete, todo) => {
         const { todos } = this.state;
         const index = todos.indexOf(todo);
 
@@ -45,16 +42,44 @@ class Main extends Component {
         ];
 
         this.setState({
-            todos: newTodos,
-            completedTodos: Main.filterCompleted(newTodos),
-            visibleTodos: this.getVisibleTodos(newTodos)
+            todos: newTodos
         });
     };
 
-    getVisibleTodos(todos, selectedFilter) {
-        if (!selectedFilter) {
-            selectedFilter = this.state.selectedFilter;
-        }
+    onTodoItemRemove = todo => {
+        const { todos } = this.state;
+        const index = todos.indexOf(todo);
+        const newTodos = [...todos];
+        newTodos.splice(index, 1);
+
+        this.setState({
+            todos: newTodos
+        });
+    };
+
+    onTodoItemValueChange = (value, todo) => {
+        const { todos } = this.state;
+        const index = todos.indexOf(todo);
+
+        const newTodos = [
+            ...todos.slice(0, index),
+            { ...todo, value },
+            ...todos.slice(index + 1)
+        ];
+
+        this.setState({
+            todos: newTodos
+        });
+    };
+
+    clearCompleteTodos = () => {
+        const { todos } = this.state;
+        this.setState({
+            todos: Main.filterActive(todos)
+        });
+    };
+
+    getVisibleTodos = memoize((todos, selectedFilter) => {
         if (selectedFilter === "all") {
             return todos;
         } else if (selectedFilter === "active") {
@@ -62,42 +87,19 @@ class Main extends Component {
         } else if (selectedFilter === "complete") {
             return Main.filterCompleted(todos);
         }
-    }
+    });
 
-    onAllClick = () => {
-        const { todos } = this.state;
-        const selectedFilter = "all";
+    onFilterStateChange = selectedFilter => {
         this.setState({
-            selectedFilter,
-            visibleTodos: this.getVisibleTodos(todos, selectedFilter),
-            completedTodos: Main.filterCompleted(todos)
-        });
-    };
-
-    onActiveClick = () => {
-        const { todos } = this.state;
-        const selectedFilter = "active";
-        this.setState({
-            selectedFilter,
-            visibleTodos: this.getVisibleTodos(todos, selectedFilter),
-            completedTodos: Main.filterCompleted(todos)
-        });
-    };
-
-    onCompleteClick = () => {
-        const { todos } = this.state;
-        const selectedFilter = "complete";
-        const completedTodos = Main.filterCompleted(todos);
-        this.setState({
-            selectedFilter,
-            visibleTodos: this.getVisibleTodos(todos, selectedFilter),
-            completedTodos
+            selectedFilter
         });
     };
 
     render() {
         const { classes } = this.props;
-        const { visibleTodos, completedTodos } = this.state;
+        const { todos, selectedFilter } = this.state;
+
+        const visibleTodos = this.getVisibleTodos(todos, selectedFilter);
         return (
             <div className={classes.root}>
                 <h1 className={classes.title}>todos</h1>
@@ -107,11 +109,12 @@ class Main extends Component {
                 />
                 <TodoList
                     todos={visibleTodos}
-                    completedTodos={completedTodos}
-                    onTodoCompleteChange={this.onTodoCompleteChange}
-                    onAllClick={this.onAllClick}
-                    onActiveClick={this.onActiveClick}
-                    onCompleteClick={this.onCompleteClick}
+                    selectedFilter={selectedFilter}
+                    onTodoItemCompleteChange={this.onTodoItemCompleteChange}
+                    onTodoItemValueChange={this.onTodoItemValueChange}
+                    onTodoItemRemove={this.onTodoItemRemove}
+                    onFilterStateChange={this.onFilterStateChange}
+                    clearCompleteTodos={this.clearCompleteTodos}
                 />
             </div>
         );

@@ -6,7 +6,9 @@ import style from "./style";
 
 class ListItem extends Component {
     static propTypes = {
-        onTodoCompleteChange: PropTypes.func.isRequired,
+        onTodoItemCompleteChange: PropTypes.func.isRequired,
+        onTodoItemRemove: PropTypes.func.isRequired,
+        onTodoItemValueChange: PropTypes.func.isRequired,
         classes: PropTypes.shape({
             root: PropTypes.string.isRequired,
             checkbox: PropTypes.string.isRequired,
@@ -19,30 +21,85 @@ class ListItem extends Component {
         }).isRequired
     };
 
+    static getDerivedStateFromProps(props, state) {
+        if (props.todo.value !== state.value) {
+            return {
+                isEditing: false,
+                value: props.todo.value
+            };
+        }
+        return null;
+    }
+
     constructor(props) {
         super(props);
         this.state = {
-            todos: props.todos
+            isEditing: false,
+            value: props.todo.value
         };
     }
 
     onChange = e => {
-        const { todo, onTodoCompleteChange } = this.props;
-        onTodoCompleteChange(e.target.checked, todo);
+        const { todo, onTodoItemCompleteChange } = this.props;
+        onTodoItemCompleteChange(e.target.checked, todo);
+    };
+
+    onClearClick = () => {
+        const { todo, onTodoItemRemove } = this.props;
+        onTodoItemRemove(todo);
+    };
+
+    onDoubleClick = () => {
+        this.setState({ isEditing: true });
+    };
+
+    onInputChange = e => {
+        this.setState({ value: e.target.value });
+    };
+
+    onInputKeyDown = e => {
+        if (e.keyCode === 13) {
+            const { todo } = this.props;
+            const { value } = this.state;
+            const trimmed = value.trim();
+            if (trimmed !== "") {
+                this.setState({ isEditing: false });
+                this.props.onTodoItemValueChange(value, todo);
+            } else {
+                this.props.onTodoItemRemove();
+            }
+        }
     };
 
     render() {
         const { classes, todo } = this.props;
+        const { isEditing, value } = this.state;
         return (
             <div className={classes.root}>
                 <input
                     className={classes.checkbox}
                     type="checkbox"
                     onChange={this.onChange}
-                    value={todo.isComplete}
+                    checked={todo.isComplete}
                 />
-                <span className={classes.text}>{todo.value}</span>
-                <button className={classes.remove}>Clear</button>
+                {!isEditing ? (
+                    <span
+                        className={classes.text}
+                        onDoubleClick={this.onDoubleClick}
+                    >
+                        {value}
+                    </span>
+                ) : (
+                    <input
+                        value={value}
+                        onChange={this.onInputChange}
+                        onKeyDown={this.onInputKeyDown}
+                    />
+                )}
+
+                <button className={classes.remove} onClick={this.onClearClick}>
+                    Clear
+                </button>
             </div>
         );
     }
