@@ -21,16 +21,6 @@ class ListItem extends Component {
         }).isRequired
     };
 
-    static getDerivedStateFromProps(props, state) {
-        if (props.todo.value !== state.value) {
-            return {
-                isEditing: false,
-                value: props.todo.value
-            };
-        }
-        return null;
-    }
-
     constructor(props) {
         super(props);
         this.state = {

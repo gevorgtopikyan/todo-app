@@ -55,9 +55,9 @@ class TodoList extends PureComponent {
         return (
             <div className={classes.root}>
                 <ul>
-                    {todos.map((todo, index) => (
+                    {todos.map(todo => (
                         <ListItem
-                            key={index}
+                            key={todo.id}
                             todo={todo}
                             onTodoItemValueChange={onTodoItemValueChange}
                             onTodoItemRemove={onTodoItemRemove}

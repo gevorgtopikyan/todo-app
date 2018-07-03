@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import injectSheet from "react-jss";
 import memoize from "memoize-one";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
 
 import CreateTodoItem from "../CreateTodoItem";
 import TodoList from "../TodoList";
@@ -8,6 +10,8 @@ import TodoList from "../TodoList";
 import style from "./style";
 
 class Main extends Component {
+    static ID = 0;
+
     static filterCompleted(todos) {
         return todos.filter(todo => todo.isComplete);
     }
@@ -27,7 +31,7 @@ class Main extends Component {
     onTodoItemCreate = value => {
         const { todos } = this.state;
         this.setState({
-            todos: [{ value, isComplete: false }, ...todos]
+            todos: [{ value, isComplete: false, id: Main.ID++ }, ...todos]
         });
     };
 
@@ -101,22 +105,24 @@ class Main extends Component {
 
         const visibleTodos = this.getVisibleTodos(todos, selectedFilter);
         return (
-            <div className={classes.root}>
-                <h1 className={classes.title}>todos</h1>
-                <CreateTodoItem
-                    hasTodo={visibleTodos.length > 0}
-                    onTodoItemCreate={this.onTodoItemCreate}
-                />
-                <TodoList
-                    todos={visibleTodos}
-                    selectedFilter={selectedFilter}
-                    onTodoItemCompleteChange={this.onTodoItemCompleteChange}
-                    onTodoItemValueChange={this.onTodoItemValueChange}
-                    onTodoItemRemove={this.onTodoItemRemove}
-                    onFilterStateChange={this.onFilterStateChange}
-                    clearCompleteTodos={this.clearCompleteTodos}
-                />
-            </div>
+            <Card className={classes.root}>
+                <CardContent>
+                    <h1 className={classes.title}>todos</h1>
+                    <CreateTodoItem
+                        hasTodo={visibleTodos.length > 0}
+                        onTodoItemCreate={this.onTodoItemCreate}
+                    />
+                    <TodoList
+                        todos={visibleTodos}
+                        selectedFilter={selectedFilter}
+                        onTodoItemCompleteChange={this.onTodoItemCompleteChange}
+                        onTodoItemValueChange={this.onTodoItemValueChange}
+                        onTodoItemRemove={this.onTodoItemRemove}
+                        onFilterStateChange={this.onFilterStateChange}
+                        clearCompleteTodos={this.clearCompleteTodos}
+                    />
+                </CardContent>
+            </Card>
         );
     }
 }
